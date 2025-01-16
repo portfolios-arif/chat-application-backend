@@ -1,4 +1,4 @@
-package domain
+package responses
 
 type APIBaseResponse struct {
 	Code       int         `json:"code"`

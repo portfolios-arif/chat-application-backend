@@ -1,6 +1,7 @@
 package config
 
 import (
+	"arfdev/chat/internal/domain/entities"
 	"fmt"
 	"log"
 	"os"
@@ -49,10 +50,12 @@ func NewDB() *gorm.DB {
 	}
 
 	// Uncomment this after defining models
-	// tables := []interface{}{
-	// 	&models.Mst_users{},
-	// }
-	// migrate(DB, tables)
+	tables := []interface{}{
+		&entities.Mst_otp{},
+		&entities.Mst_users{},
+		&entities.Mst_users_detail{},
+	}
+	migrate(DB, tables)
 
 	return DB
 }

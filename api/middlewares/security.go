@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"arfdev/chat/internal/domain"
+	resDto "arfdev/chat/internal/application/dtos/responses"
 	"net/http"
 	"os"
 
@@ -92,7 +92,7 @@ func NewSecurityHeaderMiddleware(config *SecurityHeaders) gin.HandlerFunc {
 		for _, header := range securityHeaders {
 			rHeader := ctx.GetHeader(header.Name)
 			if rHeader == "" || rHeader != header.RequiredValue {
-				response := domain.NewResponse(
+				response := resDto.NewResponse(
 					header.StatusCode,
 					false,
 					header.Message,
