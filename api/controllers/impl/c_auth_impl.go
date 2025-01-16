@@ -3,6 +3,7 @@ package impl
 import (
 	"arfdev/chat/api/controllers"
 	"arfdev/chat/internal/application/services"
+	"arfdev/chat/pkg/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,9 @@ func NewAuthControllerImpl(authService services.AuthServiceInterface) controller
 	}
 }
 
-func (c *authControllerImpl) CheckPhone(ctx *gin.Context) {}
+func (c *authControllerImpl) CheckPhone(ctx *gin.Context) {
+	helpers.POSTController(c.authService.CheckPhone)(ctx)
+}
 
 func (c *authControllerImpl) SendOtp(ctx *gin.Context) {}
 
