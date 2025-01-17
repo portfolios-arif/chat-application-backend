@@ -49,3 +49,20 @@ func (rp *UserRepositoryImpl) Insert(ctx context.Context, payload entities.Mst_o
 	}
 	return nil
 }
+
+func (rp *UserRepositoryImpl) FindOTP(ctx context.Context, otpCode, signId string) (entities.Mst_otp, error) {
+	var find entities.Mst_otp
+	result := rp.db.
+		WithContext(ctx).
+		Model(&entities.Mst_otp{}).
+		Where("otp_code = ? AND signature_id = ?", otpCode, signId).
+		First(&find)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return entities.Mst_otp{}, errors.New("Invalid Signature ID or OTP")
+		}
+		return entities.Mst_otp{}, result.Error
+	}
+	return find, nil
+}

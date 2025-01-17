@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -17,10 +18,10 @@ type dbConfig struct {
 	DBName     string
 	DBPort     string
 	SSLMode    string
-	TimeZone   string
 }
 
 func NewDB() *gorm.DB {
+	loc, _ := time.LoadLocation("Asia/Jakarta")
 	config := dbConfig{
 		DBHost:     os.Getenv("DB_HOST"),
 		DBUser:     os.Getenv("DB_USERNAME"),
@@ -28,7 +29,6 @@ func NewDB() *gorm.DB {
 		DBName:     os.Getenv("DB_NAME"),
 		DBPort:     os.Getenv("DB_PORT"),
 		SSLMode:    "disable",
-		TimeZone:   "Asia/Jakarta",
 	}
 
 	dsn := fmt.Sprintf(
@@ -39,7 +39,7 @@ func NewDB() *gorm.DB {
 		config.DBName,
 		config.DBPort,
 		config.SSLMode,
-		config.TimeZone,
+		loc,
 	)
 
 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})

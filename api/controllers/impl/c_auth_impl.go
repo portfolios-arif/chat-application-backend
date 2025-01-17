@@ -26,7 +26,9 @@ func (c *authControllerImpl) SendOtp(ctx *gin.Context) {
 	helpers.POSTController(c.authService.SendOtp)(ctx)
 }
 
-func (c *authControllerImpl) ValidateOtp(ctx *gin.Context) {}
+func (c *authControllerImpl) ValidateOtp(ctx *gin.Context) {
+	helpers.POSTController(c.authService.VerifyOTP)(ctx)
+}
 
 func (c *authControllerImpl) Register(ctx *gin.Context) {}
 

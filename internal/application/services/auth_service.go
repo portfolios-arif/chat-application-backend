@@ -9,4 +9,5 @@ import (
 type AuthServiceInterface interface {
 	CheckEmail(ctx context.Context, payload resDto.CheckEmailRequestPayload) reqDto.APIBaseResponse
 	SendOtp(ctx context.Context, payload resDto.OTPRequestPayload) reqDto.APIBaseResponse
+	VerifyOTP(ctx context.Context, payload resDto.ValidateOTPRequestPayload) reqDto.APIBaseResponse
 }

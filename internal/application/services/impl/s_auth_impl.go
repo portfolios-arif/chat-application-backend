@@ -103,3 +103,23 @@ func (s *authServiceImpl) SendOtp(ctx context.Context, payload requests.OTPReque
 
 	return responses.NewResponse(http.StatusOK, true, "Success request OTP", response)
 }
+
+func (s *authServiceImpl) VerifyOTP(ctx context.Context, payload requests.ValidateOTPRequestPayload) responses.APIBaseResponse {
+	if ctx.Err() != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Bad Request", nil)
+	}
+
+	find, err := s.repo.FindOTP(ctx, payload.OTPCode.(string), payload.SignatureID)
+	if err != nil {
+		if err.Error() == "Invalid Signature ID or OTP" {
+			return responses.NewResponse(http.StatusBadRequest, false, err.Error(), nil)
+		}
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	now := time.Now()
+	if now.After(find.ExpiredAt) {
+		return responses.NewResponse(http.StatusBadRequest, false, "OTP Expired", nil)
+	}
+	return responses.NewResponse(http.StatusOK, true, "Verification success", nil)
+}

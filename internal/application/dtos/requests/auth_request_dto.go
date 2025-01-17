@@ -11,7 +11,7 @@ type OTPRequestPayload struct {
 }
 
 type ValidateOTPRequestPayload struct {
-	OTPCode     interface{} `json:"otp_code" validate:"required,len=4"`
+	OTPCode     interface{} `json:"otp_code" validate:"required,len=6"`
 	SignatureID string      `json:"signatureId" validate:"required"`
 }
 
