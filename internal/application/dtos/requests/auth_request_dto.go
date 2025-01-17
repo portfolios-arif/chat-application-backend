@@ -1,5 +1,7 @@
 package requests
 
+import "mime/multipart"
+
 type CheckEmailRequestPayload struct {
 	Email   string `json:"email" validate:"required,email"`
 	IsLogin bool   `json:"isLogin"`
@@ -16,15 +18,16 @@ type ValidateOTPRequestPayload struct {
 }
 
 type RegisterRequestPayload struct {
-	Phonenumber string      `json:"phonenumber" validate:"required,min=7,max=15,numeric"`
-	DeviceID    string      `json:"deviceId" validate:"required,alphanum"`
-	PublicKey   string      `json:"publicKey" validate:"required,base64"`
-	Username    string      `json:"username" validate:"required,min=6,max=15,ascii"`
-	FullName    string      `json:"fullName" validate:"required,min=5,max=20"`
-	Gender      string      `json:"gender" validate:"required,alpha"`
-	Age         interface{} `json:"age" validate:"required,numberic"`
+	Email     string                `form:"email" binding:"required,email"`
+	DeviceID  string                `form:"deviceId" binding:"required"`
+	Username  string                `form:"username" binding:"required,min=6,max=15,ascii"`
+	Fullname  string                `form:"fullName" binding:"required,min=5,max=20"`
+	Gender    string                `form:"gender" binding:"omitempty,alpha"`
+	Age       int8                  `form:"age" binding:"omitempty,numeric"`
+	PublicKey *multipart.FileHeader `form:"publicKey" binding:"required"`
+	ImgFile   *multipart.FileHeader `form:"imgFile" binding:"omitempty"`
 }
 
 type LoginRequestPayload struct {
-	Phonenumber string `json:"phonenumber" validate:"required,min=7,max=15,numeric"`
+	Email string `json:"email" validate:"required,email"`
 }

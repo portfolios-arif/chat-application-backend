@@ -2,8 +2,11 @@ package impl
 
 import (
 	"arfdev/chat/api/controllers"
+	"arfdev/chat/internal/application/dtos/requests"
+	"arfdev/chat/internal/application/dtos/responses"
 	"arfdev/chat/internal/application/services"
 	"arfdev/chat/pkg/helpers"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +33,18 @@ func (c *authControllerImpl) ValidateOtp(ctx *gin.Context) {
 	helpers.POSTController(c.authService.VerifyOTP)(ctx)
 }
 
-func (c *authControllerImpl) Register(ctx *gin.Context) {}
+func (c *authControllerImpl) Register(ctx *gin.Context) {
+	var payload requests.RegisterRequestPayload
+
+	if err := ctx.ShouldBind(&payload); err != nil {
+		response := responses.NewResponse(http.StatusBadRequest, false, "Bad Request", nil)
+		ctx.AbortWithStatusJSON(response.Code, response)
+		return
+	}
+
+	res := c.authService.Register(ctx.Request.Context(), payload)
+	ctx.JSON(res.Code, res)
+}
 
 func (c *authControllerImpl) Login(ctx *gin.Context) {}
 

@@ -1,18 +1,28 @@
 package impl
 
 import (
+	"arfdev/chat/config"
 	"arfdev/chat/internal/application/dtos/requests"
 	"arfdev/chat/internal/application/dtos/responses"
 	"arfdev/chat/internal/application/services"
 	"arfdev/chat/internal/domain/entities"
 	"arfdev/chat/internal/domain/repositories"
 	"arfdev/chat/pkg/helpers"
+	"bytes"
 	"context"
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -122,4 +132,92 @@ func (s *authServiceImpl) VerifyOTP(ctx context.Context, payload requests.Valida
 		return responses.NewResponse(http.StatusBadRequest, false, "OTP Expired", nil)
 	}
 	return responses.NewResponse(http.StatusOK, true, "Verification success", nil)
+}
+
+func (s *authServiceImpl) Register(ctx context.Context, payload requests.RegisterRequestPayload) responses.APIBaseResponse {
+	bucketname := os.Getenv("MINIO_BUCKETNAME")
+	minioClient := config.NewMinioClient()
+	userId := uuid.New().String()
+	if ctx.Err() != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Bad Request", nil)
+	}
+
+	pubKeyFile, err := payload.PublicKey.Open()
+	if err != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Failed to process pub key", nil)
+	}
+
+	pubKeyBytes, err := io.ReadAll(pubKeyFile)
+	if err != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Failed to read pub key", nil)
+	}
+
+	block, _ := pem.Decode(pubKeyBytes)
+	if block == nil || block.Type != "PUBLIC KEY" {
+		return responses.NewResponse(http.StatusBadRequest, false, "Invalid Pub Key Format.", nil)
+	}
+
+	_, err = x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Invalid Pub Key", nil)
+	}
+
+	profilePicPath := "default-profile-icon-24.jpg"
+	if payload.ImgFile != nil {
+		profileImg, err := payload.ImgFile.Open()
+		if err != nil {
+			return responses.NewResponse(http.StatusBadRequest, false, "Failed to process profile picture", nil)
+		}
+
+		contentType := payload.ImgFile.Header.Get("Content-Type")
+		if !helpers.ValidFileType(contentType) {
+			return responses.NewResponse(http.StatusBadRequest, false, "Invalid Image Format", nil)
+		}
+
+		profilePicPath = fmt.Sprintf("profilePic/%s%s", userId, filepath.Ext(payload.ImgFile.Filename))
+		_, err = minioClient.PutObject(ctx, bucketname, profilePicPath, profileImg, payload.ImgFile.Size, minio.PutObjectOptions{
+			ContentType: payload.ImgFile.Header.Get("Content-Type"),
+		})
+		if err != nil {
+			return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+		}
+		defer profileImg.Close()
+	}
+
+	pubKeyPath := fmt.Sprintf("pubKey/%s.pem", userId)
+	_, err = minioClient.PutObject(ctx, bucketname, pubKeyPath, bytes.NewReader(pubKeyBytes), payload.PublicKey.Size, minio.PutObjectOptions{
+		ContentType: payload.PublicKey.Header.Get("Content-Type"),
+	})
+	if err != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	usersData := entities.Mst_users{
+		ID:            userId,
+		Email:         payload.Email,
+		DeviceID:      payload.DeviceID,
+		PublicKeyPath: pubKeyPath,
+		IsOnline:      false,
+		IsDeleted:     false,
+	}
+
+	usersDetail := entities.Mst_users_detail{
+		UserID:   usersData.ID,
+		Username: payload.Username,
+		FullName: payload.Fullname,
+		ImgPath:  profilePicPath,
+		Gender:   payload.Gender,
+		Age:      int8(payload.Age),
+	}
+
+	err = s.repo.InsertUser(ctx, usersData)
+	if err != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+	err = s.repo.InsertUserDetail(ctx, usersDetail)
+	if err != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	return responses.NewResponse(http.StatusCreated, true, "Register Success", nil)
 }

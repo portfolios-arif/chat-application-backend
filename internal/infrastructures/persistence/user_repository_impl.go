@@ -66,3 +66,27 @@ func (rp *UserRepositoryImpl) FindOTP(ctx context.Context, otpCode, signId strin
 	}
 	return find, nil
 }
+
+func (rp *UserRepositoryImpl) InsertUser(ctx context.Context, payload entities.Mst_users) error {
+	result := rp.db.
+		WithContext(ctx).
+		Model(&entities.Mst_users{}).
+		Create(&payload)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (rp *UserRepositoryImpl) InsertUserDetail(ctx context.Context, payload entities.Mst_users_detail) error {
+	result := rp.db.
+		WithContext(ctx).
+		Model(&entities.Mst_users_detail{}).
+		Create(&payload)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
