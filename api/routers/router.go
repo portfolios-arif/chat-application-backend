@@ -8,6 +8,7 @@ import (
 	"arfdev/chat/internal/infrastructures/persistence"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,6 +43,7 @@ func NewRoute() *gin.Engine {
 	authRoute := NewAuthRoute(authService)
 
 	v1 := router.Group(basePath)
+	v1.Use(middlewares.TimeoutMiddleware(10 * time.Second))
 	{
 		v1.GET("/", welcomeHandler)
 		authRoute.Setup(v1)

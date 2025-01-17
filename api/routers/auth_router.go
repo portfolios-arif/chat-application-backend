@@ -21,7 +21,7 @@ func NewAuthRoute(authService services.AuthServiceInterface) *authRoute {
 func (r *authRoute) Setup(rg *gin.RouterGroup) {
 	auth := rg.Group("/auth")
 	{
-		auth.POST("/check-phonenumber", r.authController.CheckPhone)
+		auth.POST("/check-email", r.authController.CheckEmail)
 		auth.POST("/otp", r.authController.SendOtp)
 		auth.POST("/validate-otp", r.authController.ValidateOtp)
 		auth.POST("/register", r.authController.Register)

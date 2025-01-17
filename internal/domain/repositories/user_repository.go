@@ -6,5 +6,6 @@ import (
 )
 
 type UserRepositoryInterface interface {
-	FindByPhonenumber(ctx context.Context, phonenumber string) (entities.Mst_users, error)
+	FindByEmail(ctx context.Context, email string) (entities.Mst_users, error)
+	Insert(ctx context.Context, payload entities.Mst_otp) error
 }

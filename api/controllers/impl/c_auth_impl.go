@@ -18,11 +18,13 @@ func NewAuthControllerImpl(authService services.AuthServiceInterface) controller
 	}
 }
 
-func (c *authControllerImpl) CheckPhone(ctx *gin.Context) {
-	helpers.POSTController(c.authService.CheckPhone)(ctx)
+func (c *authControllerImpl) CheckEmail(ctx *gin.Context) {
+	helpers.POSTController(c.authService.CheckEmail)(ctx)
 }
 
-func (c *authControllerImpl) SendOtp(ctx *gin.Context) {}
+func (c *authControllerImpl) SendOtp(ctx *gin.Context) {
+	helpers.POSTController(c.authService.SendOtp)(ctx)
+}
 
 func (c *authControllerImpl) ValidateOtp(ctx *gin.Context) {}
 

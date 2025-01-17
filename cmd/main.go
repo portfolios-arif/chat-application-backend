@@ -53,7 +53,6 @@ func main() {
 	}()
 
 	// While the other or mainly this function does is to detect signal interrupt like ctrl+c
-
 	// Wait for interrupted signal
 	<-stop
 

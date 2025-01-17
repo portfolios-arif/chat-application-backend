@@ -1,13 +1,13 @@
 package requests
 
-type CheckPhoneRequestPayload struct {
-	Phonenumber string `json:"phonenumber" validate:"required,min=7,max=15,numeric"`
-	IsLogin     bool   `json:"isLogin" validate:"required,boolean"`
+type CheckEmailRequestPayload struct {
+	Email   string `json:"email" validate:"required,email"`
+	IsLogin bool   `json:"isLogin"`
 }
 
 type OTPRequestPayload struct {
-	DeviceID    string `json:"deviceId" validate:"required,alphanum"`
-	Phonenumber string `json:"phonenumber" validate:"required,min=7,max=15,numeric"`
+	DeviceID string `json:"deviceId" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
 }
 
 type ValidateOTPRequestPayload struct {

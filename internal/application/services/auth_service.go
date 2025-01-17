@@ -7,5 +7,6 @@ import (
 )
 
 type AuthServiceInterface interface {
-	CheckPhone(ctx context.Context, payload resDto.CheckPhoneRequestPayload) reqDto.APIBaseResponse
+	CheckEmail(ctx context.Context, payload resDto.CheckEmailRequestPayload) reqDto.APIBaseResponse
+	SendOtp(ctx context.Context, payload resDto.OTPRequestPayload) reqDto.APIBaseResponse
 }

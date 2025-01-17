@@ -1,16 +1,19 @@
 package entities
 
+import "time"
+
 type Mst_otp struct {
-	ID          string `gorm:"type:uuid;default:gen_random_uuid()"`
-	OTPCode     string `json:"otp_code"`
-	DeviceID    string `gorm:"index" json:"device_id"`
-	SignatureID string `gorm:"index" json:"signature_id"`
+	ID          string    `gorm:"type:uuid;default:gen_random_uuid()"`
+	OTPCode     string    `json:"otp_code"`
+	DeviceID    string    `gorm:"index" json:"device_id"`
+	SignatureID string    `gorm:"index" json:"signature_id"`
+	ExpiredAt   time.Time `json:"expired_at"`
 	BaseTableDTO
 }
 
 type Mst_users struct {
 	ID            string           `gorm:"type:uuid;default:gen_random_uuid()"`
-	Phonenumber   string           `gorm:"index;unique" json:"phone_number"`
+	Email         string           `gorm:"index;unique" json:"email"`
 	DeviceID      string           `json:"device_id"`
 	PublicKeyPath string           `json:"public_key_path"`
 	IsOnline      bool             `gorm:"default:false" json:"is_online"`
