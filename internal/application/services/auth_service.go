@@ -11,4 +11,5 @@ type AuthServiceInterface interface {
 	SendOtp(ctx context.Context, payload resDto.OTPRequestPayload) reqDto.APIBaseResponse
 	VerifyOTP(ctx context.Context, payload resDto.ValidateOTPRequestPayload) reqDto.APIBaseResponse
 	Register(ctx context.Context, payload resDto.RegisterRequestPayload) reqDto.APIBaseResponse
+	Login(ctx context.Context, payload resDto.LoginRequestPayload) reqDto.APIBaseResponse
 }

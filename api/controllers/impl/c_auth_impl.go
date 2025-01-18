@@ -46,7 +46,9 @@ func (c *authControllerImpl) Register(ctx *gin.Context) {
 	ctx.JSON(res.Code, res)
 }
 
-func (c *authControllerImpl) Login(ctx *gin.Context) {}
+func (c *authControllerImpl) Login(ctx *gin.Context) {
+	helpers.POSTController(c.authService.Login)(ctx)
+}
 
 func (c *authControllerImpl) RefreshToken(ctx *gin.Context) {}
 

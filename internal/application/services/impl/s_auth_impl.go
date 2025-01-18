@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -220,4 +221,50 @@ func (s *authServiceImpl) Register(ctx context.Context, payload requests.Registe
 	}
 
 	return responses.NewResponse(http.StatusCreated, true, "Register Success", nil)
+}
+
+func (s *authServiceImpl) Login(ctx context.Context, payload requests.LoginRequestPayload) responses.APIBaseResponse {
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	accessExp, _ := strconv.Atoi(os.Getenv("JWT_ACCESS_EXPIRES_IN"))
+	refreshExp, _ := strconv.Atoi(os.Getenv("JWT_REFRESH_EXPIRES_IN"))
+	accessExpDuration := time.Duration(accessExp) * time.Hour
+	refreshExpDuration := time.Duration(refreshExp) * time.Hour
+
+	jwtAccessHelper := helpers.NewJWTHelper(secret, accessExpDuration)
+	jwtRefreshHelper := helpers.NewJWTHelper(secret, refreshExpDuration)
+
+	if ctx.Err() != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Bad Request", nil)
+	}
+
+	find, err := s.repo.FindByEmail(ctx, payload.Email)
+	if err == nil && "" == find.Email {
+		return responses.NewResponse(http.StatusBadRequest, false, "User has not been registered yet", nil)
+	}
+
+	if err != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	accessToken, errToken := jwtAccessHelper.GenerateToken(find.ID)
+	refreshToken, errToken := jwtRefreshHelper.GenerateToken(find.ID)
+	if errToken != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	accessRdbKey := fmt.Sprintf("access-%s", find.ID)
+	refreshRdbKey := fmt.Sprintf("refresh-%s", find.ID)
+
+	errRdb := s.rdb.Set(ctx, accessRdbKey, accessToken, accessExpDuration).Err()
+	errRdb = s.rdb.Set(ctx, refreshRdbKey, refreshToken, refreshExpDuration).Err()
+	if errRdb != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	response := &responses.LoginResponsePayload{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	return responses.NewResponse(http.StatusOK, true, "Login success", response)
 }
