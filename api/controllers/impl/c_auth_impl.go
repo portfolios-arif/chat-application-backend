@@ -50,6 +50,17 @@ func (c *authControllerImpl) Login(ctx *gin.Context) {
 	helpers.POSTController(c.authService.Login)(ctx)
 }
 
-func (c *authControllerImpl) RefreshToken(ctx *gin.Context) {}
+func (c *authControllerImpl) RefreshToken(ctx *gin.Context) {
+	helpers.POSTController(c.authService.RefreshToken)(ctx)
+}
 
-func (c *authControllerImpl) Logout(ctx *gin.Context) {}
+func (c *authControllerImpl) Logout(ctx *gin.Context) {
+	userID, exists := ctx.Get("UserID")
+	if !exists {
+		response := responses.NewResponse(http.StatusUnauthorized, false, "Unauthorized", nil)
+		ctx.AbortWithStatusJSON(response.Code, response)
+	}
+
+	res := c.authService.Logout(ctx.Request.Context(), userID.(string))
+	ctx.JSON(res.Code, res)
+}

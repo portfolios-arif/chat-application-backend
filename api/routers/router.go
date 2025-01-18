@@ -46,7 +46,7 @@ func NewRoute() *gin.Engine {
 	v1.Use(middlewares.TimeoutMiddleware(10 * time.Second))
 	{
 		v1.GET("/", welcomeHandler)
-		authRoute.Setup(v1)
+		authRoute.Setup(v1, rdb)
 	}
 
 	return router

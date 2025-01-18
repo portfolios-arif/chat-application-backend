@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -60,4 +61,12 @@ func (h *JWTHelper) ValidateToken(tokenString string) (*JWTClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func (h *JWTHelper) ExtractBearerToken(authHeader string) (string, error) {
+	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+		return "", errors.New("Invalid authorization format")
+	}
+
+	return authHeader[7:], nil
 }

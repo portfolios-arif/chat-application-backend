@@ -7,6 +7,7 @@ import (
 
 type UserRepositoryInterface interface {
 	FindByEmail(ctx context.Context, email string) (entities.Mst_users, error)
+	FindByID(ctx context.Context, userID string) (entities.Mst_users, error)
 	Insert(ctx context.Context, payload entities.Mst_otp) error
 	FindOTP(ctx context.Context, otpCode, signId string) (entities.Mst_otp, error)
 	InsertUser(ctx context.Context, payload entities.Mst_users) error

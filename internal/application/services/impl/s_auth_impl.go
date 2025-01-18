@@ -268,3 +268,61 @@ func (s *authServiceImpl) Login(ctx context.Context, payload requests.LoginReque
 
 	return responses.NewResponse(http.StatusOK, true, "Login success", response)
 }
+
+func (s *authServiceImpl) RefreshToken(ctx context.Context, payload requests.RefreshTokenRequestPayload) responses.APIBaseResponse {
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	accessExp, _ := strconv.Atoi(os.Getenv("JWT_ACCESS_EXPIRES_IN"))
+	refreshExp, _ := strconv.Atoi(os.Getenv("JWT_REFRESH_EXPIRES_IN"))
+	accessExpDuration := time.Duration(accessExp) * time.Hour
+	refreshExpDuration := time.Duration(refreshExp) * time.Hour
+
+	jwtAccessHelper := helpers.NewJWTHelper(secret, accessExpDuration)
+	jwtRefreshHelper := helpers.NewJWTHelper(secret, refreshExpDuration)
+
+	if ctx.Err() != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Bad Request", nil)
+	}
+
+	claims, err := jwtRefreshHelper.ValidateToken(payload.RefreshToken)
+	if err != nil {
+		return responses.NewResponse(http.StatusUnauthorized, false, "Unautorized", nil)
+	}
+
+	find, err := s.repo.FindByID(ctx, claims.UserID)
+	if err != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	accessToken, errToken := jwtAccessHelper.GenerateToken(find.ID)
+	if errToken != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	response := responses.RefreshTokenResponsePayload{
+		AccessToken: accessToken,
+	}
+
+	errRdb := s.rdb.Set(ctx, fmt.Sprintf("access-%s", find.ID), accessToken, accessExpDuration).Err()
+	if errRdb != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	return responses.NewResponse(http.StatusOK, true, "Success get new access token", response)
+}
+
+func (s *authServiceImpl) Logout(ctx context.Context, userID string) responses.APIBaseResponse {
+	if ctx.Err() != nil {
+		return responses.NewResponse(http.StatusBadRequest, false, "Bad Request", nil)
+	}
+
+	accessRdbKey := fmt.Sprintf("access-%s", userID)
+	refreshRdbKey := fmt.Sprintf("refresh-%s", userID)
+
+	errDel := s.rdb.Del(ctx, accessRdbKey).Err()
+	errDel = s.rdb.Del(ctx, refreshRdbKey).Err()
+	if errDel != nil {
+		return responses.NewResponse(http.StatusInternalServerError, false, "Internal Server Error", nil)
+	}
+
+	return responses.NewResponse(http.StatusOK, true, "Logout Success", nil)
+}

@@ -31,3 +31,7 @@ type RegisterRequestPayload struct {
 type LoginRequestPayload struct {
 	Email string `json:"email" validate:"required,email"`
 }
+
+type RefreshTokenRequestPayload struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
+}

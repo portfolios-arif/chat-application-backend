@@ -38,6 +38,20 @@ func (rp *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (en
 	return find, nil
 }
 
+func (rp *UserRepositoryImpl) FindByID(ctx context.Context, userID string) (entities.Mst_users, error) {
+	var find entities.Mst_users
+	result := rp.db.
+		WithContext(ctx).
+		Model(&entities.Mst_users{}).
+		Where("id = ?", userID).
+		Find(&find)
+
+	if result.Error != nil {
+		return entities.Mst_users{}, result.Error
+	}
+	return find, nil
+}
+
 func (rp *UserRepositoryImpl) Insert(ctx context.Context, payload entities.Mst_otp) error {
 	result := rp.db.
 		WithContext(ctx).
